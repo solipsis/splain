@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image"
 	"log"
+	"strings"
 
 	"github.com/gizak/termui/v3"
 	ui "github.com/gizak/termui/v3"
@@ -17,17 +19,23 @@ const (
 	deserialize
 )
 
+var inXpub = flag.String("xpub", "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz", "xpub")
+
 func main() {
+	flag.Parse()
+	xpub := *inXpub
 
 	var curState = decode
 
-	xpub := "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
+	//xpub := "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
 	fmt.Println(xpub)
 
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 	defer ui.Close()
+
+	eth()
 
 	/*
 		header := widgets.NewParagraph()
@@ -177,6 +185,86 @@ func main() {
 		}
 
 	}
+}
+
+func eth() {
+	l := widgets.NewList()
+	l.Title = "List"
+	l.Rows = []string{
+		"[0] Public Key",
+		"[1] Keccak-256",
+		"[2] Take last 20 bytes",
+		"[3] Hex Encode and add prefix"}
+	l.SelectedRowStyle = ui.NewStyle(ui.ColorYellow, ui.ColorBlack, ui.ModifierBold)
+
+	grid := ui.NewGrid()
+	termwidth, termheight := ui.TerminalDimensions()
+	grid.SetRect(0, 0, termwidth, termheight)
+
+	top := widgets.NewParagraph()
+	top.Text = "[" + center("Base 58 Decode") + "](fg:yellow,mod:bold)"
+	top.SetRect(3, 3, 30, 6)
+
+	bottom := widgets.NewParagraph()
+
+	//decodeTop = top
+	update := func() {
+		var b strings.Builder
+		b.Reset()
+		switch l.SelectedRow {
+		case 0:
+			top.Text = "[" + center("Uncompressed Public Key") + "](fg:yellow,mod:bold)"
+			b.WriteString(center("To generate an ethereum address first obtain your uncompressed public key\n"))
+
+			b.WriteString(center("\n"))
+			b.WriteString(center("|\n"))
+			b.WriteString(center("|\n"))
+			b.WriteString(center("|\n"))
+			b.WriteString(center("v\n"))
+			b.WriteString(center("\n"))
+			b.WriteString(center("0x044646AE5047316B4230D0086C8ACEC687F00B1CD9D1DC634F6CB358AC0A9A8FFFFE77B4DD0A4BFB95851F3B7355C781DD60F8418FC8A65D14907AFF47C903A559\n"))
+			bottom.Text = b.String()
+		}
+	}
+	update()
+
+	grid.Set(
+		ui.NewRow(1.0/2,
+			ui.NewCol(.4/2, l),
+			ui.NewCol(1.6/2,
+				ui.NewRow(.3/2, top),
+				ui.NewRow(1.7/2, bottom),
+			),
+			//),
+		),
+	)
+	ui.Render(grid)
+
+	uiEvents := ui.PollEvents()
+	for {
+		e := <-uiEvents
+		switch e.ID {
+		case "q", "<C-c>":
+			panic("dave")
+		case "j", "<Down>":
+			l.ScrollDown()
+			//renderSwap()
+			ui.Clear()
+			update()
+			ui.Render(grid)
+			//ui.Render(l)
+		case "k", "<Up>":
+			l.ScrollUp()
+			//renderSwap()
+			ui.Clear()
+			update()
+			ui.Render(grid)
+			//ui.Render(l)
+
+		}
+
+	}
+
 }
 
 /*
