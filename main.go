@@ -71,20 +71,6 @@ func main() {
 	var bottom wrapper
 	bottom = wrapper{decodeBottom}
 
-	//var test2 wrapper
-	/*
-		tabpane2 := widgets.NewTabPane("davel", "tim", "mom", "maya", "chaincode", "key", "private")
-		tabpane2.SetRect(5, 0, 20, 3)
-		tabpane2.Border = true
-	*/
-	//test2 = tabpane2
-
-	/*
-		xpubPar := widgets.NewParagraph()
-		xpubPar.Text = "[xpub](fg:green)[123ABC](fg:yellow)[fbeef](fg:red)[dave](mod:bold,fg:cyan,bg:white)"
-		xpubPar.SetRect(0, 0, 30, 3)
-	*/
-
 	l := widgets.NewList()
 	l.Title = "List"
 	l.Rows = []string{
@@ -114,6 +100,7 @@ func main() {
 	renderTab := func() {
 
 		if curState == deserialize {
+			activeTab = (deserializeTop).(*widgets.TabPane).ActiveTabIndex
 			/*
 				switch tabpane.ActiveTabIndex {
 				case 0:
@@ -166,11 +153,13 @@ func main() {
 			(deserializeTop).(*widgets.TabPane).FocusLeft()
 			ui.Clear()
 			renderTab()
+			redrawContent()
 			ui.Render(grid)
 		case "l":
 			(deserializeTop).(*widgets.TabPane).FocusRight()
 			ui.Clear()
 			renderTab()
+			redrawContent()
 			ui.Render(grid)
 		case "j", "<Down>":
 			l.ScrollDown()
