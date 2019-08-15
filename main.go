@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"log"
 
 	"github.com/gizak/termui/v3"
@@ -9,7 +10,16 @@ import (
 	"github.com/gizak/termui/v3/widgets"
 )
 
+type state int
+
+const (
+	decode = iota
+	deserialize
+)
+
 func main() {
+
+	var curState = decode
 
 	xpub := "xpub6CUGRUonZSQ4TWtTMmzXdrXDtypWKiKrhko4egpiMZbpiaQL2jkwSB1icqYh2cfDfVxdx4df189oLKnC5fSwqPfgyP3hooxujYzAu3fDVmz"
 	fmt.Println(xpub)
@@ -47,26 +57,33 @@ func main() {
 	*/
 
 	decodeInit(xpub)
+	deserializeInit(xpub)
 
 	var top wrapper
-	tabpane := widgets.NewTabPane("version", "depth", "fingerprint", "index", "chaincode", "key", "private")
-	tabpane.SetRect(5, 0, 20, 3)
-	tabpane.Border = true
-	top = wrapper{tabpane}
+	/*
+		tabpane := widgets.NewTabPane("version", "depth", "fingerprint", "index", "chaincode", "key", "private")
+		tabpane.SetRect(5, 0, 20, 3)
+		tabpane.Border = true
+		top = wrapper{tabpane}
+	*/
 	top = wrapper{decodeTop}
 
 	var bottom wrapper
 	bottom = wrapper{decodeBottom}
 
 	//var test2 wrapper
-	tabpane2 := widgets.NewTabPane("davel", "tim", "mom", "maya", "chaincode", "key", "private")
-	tabpane2.SetRect(5, 0, 20, 3)
-	tabpane2.Border = true
+	/*
+		tabpane2 := widgets.NewTabPane("davel", "tim", "mom", "maya", "chaincode", "key", "private")
+		tabpane2.SetRect(5, 0, 20, 3)
+		tabpane2.Border = true
+	*/
 	//test2 = tabpane2
 
-	xpubPar := widgets.NewParagraph()
-	xpubPar.Text = "[xpub](fg:green)[123ABC](fg:yellow)[fbeef](fg:red)[dave](mod:bold,fg:cyan,bg:white)"
-	xpubPar.SetRect(0, 0, 30, 3)
+	/*
+		xpubPar := widgets.NewParagraph()
+		xpubPar.Text = "[xpub](fg:green)[123ABC](fg:yellow)[fbeef](fg:red)[dave](mod:bold,fg:cyan,bg:white)"
+		xpubPar.SetRect(0, 0, 30, 3)
+	*/
 
 	l := widgets.NewList()
 	l.Title = "List"
@@ -95,18 +112,37 @@ func main() {
 	ui.Render(grid)
 
 	renderTab := func() {
-		switch tabpane.ActiveTabIndex {
+
+		if curState == deserialize {
+			/*
+				switch tabpane.ActiveTabIndex {
+				case 0:
+					//ui.Render(p2)
+					xpubPar.Text = "Potato"
+				case 1:
+					xpubPar.Text = "[RED DRAGON](fg:red) Potato"
+					//ui.Render(bc)
+				case 2:
+					//test.Drawable = decodeTop
+					//xpubPar.Text = fmt.Sprintf("%+v", test)
+				default:
+					xpubPar.Text = "Javascript is cool"
+				}
+			*/
+		}
+	}
+
+	renderSwap := func() {
+		switch l.SelectedRow {
 		case 0:
-			//ui.Render(p2)
-			xpubPar.Text = "Potato"
+			curState = decode
+			top.drawable = decodeTop
+			bottom.drawable = decodeBottom
+
 		case 1:
-			xpubPar.Text = "[RED DRAGON](fg:red) Potato"
-			//ui.Render(bc)
-		case 2:
-			//test.Drawable = decodeTop
-			//xpubPar.Text = fmt.Sprintf("%+v", test)
-		default:
-			xpubPar.Text = "Javascript is cool"
+			curState = deserialize
+			top.drawable = deserializeTop
+			bottom.drawable = deserializeBottom
 		}
 	}
 
@@ -127,24 +163,26 @@ func main() {
 		case "q", "<C-c>":
 			return
 		case "h":
-			tabpane.FocusLeft()
+			(deserializeTop).(*widgets.TabPane).FocusLeft()
 			ui.Clear()
 			renderTab()
 			ui.Render(grid)
-			//ui.Render(xpubPar, tabpane)
-			//ui.Render(header, tabpane)
 		case "l":
-			tabpane.FocusRight()
+			(deserializeTop).(*widgets.TabPane).FocusRight()
 			ui.Clear()
 			renderTab()
 			ui.Render(grid)
-			//ui.Render(xpubPar, tabpane)
-			//ui.Render(header, tabpane)
 		case "j", "<Down>":
 			l.ScrollDown()
+			renderSwap()
+			ui.Clear()
+			ui.Render(grid)
 			ui.Render(l)
 		case "k", "<Up>":
 			l.ScrollUp()
+			renderSwap()
+			ui.Clear()
+			ui.Render(grid)
 			ui.Render(l)
 
 		}
@@ -152,11 +190,12 @@ func main() {
 	}
 }
 
+/*
 type wrapper struct {
 	ui.Drawable
 }
+*/
 
-/*
 type wrapper struct {
 	drawable ui.Drawable
 }
@@ -180,4 +219,3 @@ func (w *wrapper) Lock() {
 func (w *wrapper) Unlock() {
 	w.drawable.Unlock()
 }
-*/
