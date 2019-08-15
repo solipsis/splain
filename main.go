@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gizak/termui/v3"
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 )
@@ -26,6 +27,11 @@ func main() {
 		header.TextStyle.Bg = ui.ColorBlue
 	*/
 
+	type token struct {
+		color termui.Color
+		text  string
+	}
+
 	p2 := widgets.NewParagraph()
 	p2.Text = "Press q to quit\nPress h or l to switch tabs\n"
 	p2.Title = "Keys"
@@ -46,19 +52,56 @@ func main() {
 	xpubPar.Text = "[xpub](fg:green)[123ABC](fg:yellow)[fbeef](fg:red)[dave](mod:bold,fg:cyan,bg:white)"
 	xpubPar.SetRect(0, 0, 30, 3)
 
+	l := widgets.NewList()
+	l.Title = "List"
+	l.Rows = []string{
+		"[0] github.com/gizak/termui/v3",
+		"[1] [你好，世界](fg:blue)",
+		"[2] [こんにちは世界](fg:red)",
+		"[3] [color](fg:white,bg:green) output",
+		"[4] output.go",
+		"[5] random_out.go",
+		"[6] dashboard.go",
+		"[7] foo",
+		"[8] bar",
+		"[9] baz",
+	}
+	l.TextStyle = ui.NewStyle(ui.ColorYellow)
+	l.WrapText = false
+	l.SetRect(0, 0, 25, 8)
+
+	grid := ui.NewGrid()
+	termwidth, termheight := ui.TerminalDimensions()
+	grid.SetRect(0, 0, termwidth, termheight)
+
+	grid.Set(
+		ui.NewRow(1.0/2,
+			ui.NewCol(.7/2, l),
+			ui.NewCol(1.3/2,
+				ui.NewRow(.3/2, tabpane),
+				ui.NewRow(1.7/2, xpubPar),
+			),
+		),
+	)
+	ui.Render(grid)
+
 	renderTab := func() {
 		switch tabpane.ActiveTabIndex {
 		case 0:
-			ui.Render(p2)
+			//ui.Render(p2)
+			xpubPar.Text = "Potato"
 		case 1:
-			ui.Render(bc)
+			xpubPar.Text = "[RED DRAGON](fg:red) Potato"
+			//ui.Render(bc)
+		default:
+			xpubPar.Text = "Javascript is cool"
 		}
 	}
 
 	// colored paragraph up top
 	// each tab is associated with 1 chunk
 
-	ui.Render(xpubPar, tabpane, p2)
+	//ui.Render(xpubPar, tabpane, p2)
 
 	uiEvents := ui.PollEvents()
 
@@ -70,15 +113,25 @@ func main() {
 		case "h":
 			tabpane.FocusLeft()
 			ui.Clear()
-			ui.Render(xpubPar, tabpane)
-			//ui.Render(header, tabpane)
 			renderTab()
+			ui.Render(grid)
+			//ui.Render(xpubPar, tabpane)
+			//ui.Render(header, tabpane)
 		case "l":
 			tabpane.FocusRight()
 			ui.Clear()
-			ui.Render(xpubPar, tabpane)
-			//ui.Render(header, tabpane)
 			renderTab()
+			ui.Render(grid)
+			//ui.Render(xpubPar, tabpane)
+			//ui.Render(header, tabpane)
+		case "j", "<Down>":
+			l.ScrollDown()
+			ui.Render(l)
+		case "k", "<Up>":
+			l.ScrollUp()
+			ui.Render(l)
+
 		}
+
 	}
 }
